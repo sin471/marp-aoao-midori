@@ -1,0 +1,6 @@
+{
+  "markdown.marp.themes": [
+    "./themes/aoao-midori.css"
+  ],
+  "markdown.marp.enableHtml": true
+}

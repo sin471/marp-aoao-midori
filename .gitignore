@@ -1,0 +1,8 @@
+# ビルド生成物（marp-cli の出力）
+out.html
+*.pdf
+*.pptx
+
+# 依存・OS・エディタ
+node_modules/
+.DS_Store
