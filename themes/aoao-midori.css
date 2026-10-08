@@ -336,3 +336,135 @@ section.ochiai .card {
   margin-top: 22px;   /* 見出しタブ(.tag)が枠の外上にはみ出す分の余白 */
   font-size: 21px;
 }
+
+/* =====================================================
+ * ガントチャート  :  <!-- _class: gantt -->
+ *   Markdown の表をそのままガントチャートとして描く
+ *     1列目     : タスク名
+ *     2列目以降 : 1列 = 1か月。セルに4文字で各週を書く
+ *                 ■（または = #）= 作業あり / .（または ・ - □ 空白）= なし
+ *                 例: ■■■■ = 丸ごと / ..■■ = 後半2週 / 空セル = なし
+ *   区分はタスク名の書き方で決まる
+ *     そのまま = 計画・調査(青) / *斜体* = 実験(青緑) / **太字** = 執筆(赤) / `コード` = その他(灰)
+ *   1列目が空の行は注記行（今日・マイルストーンなどを小さく表示）
+ *   表の直後の段落は凡例（先頭に計画・調査、続けて *実験* **執筆** `その他`）
+ *
+ *   週の4文字は専用フォント aoao-gantt（■ = 帯 / . = 空白、どちらも幅 1em）で描き、
+ *   1em = 1か月の列幅 / 4 になるよう font-size を合わせている。
+ *   フォントの作り直しは tools/gantt-font.py
+ * ===================================================== */
+@font-face {
+  font-family: 'aoao-gantt';
+  src: url(data:font/woff2;base64,d09GMgABAAAAAAFcAAoAAAAAAsgAAAEVAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmAAeAocOAE2AiQDCAsIAAQgBWkHLhsoAmCuCmwXGlXHYiOmyiKx7GV0zZN4+Bpr7+8uKtHuDojiyUqlibbGUCON6eqVZKubG7ZuK4a2IJajcPbQX+Jf0NpJHIxTeZL57z2qk+NWxIHmFFEgSRQIR3jNEswNDkuDCoZh/KKc3+JMm4Ia2hbQFjwaCz+5USM3nAMAGiAhY1QWGFUcglGDsqJhypwNOzN35i9g4adCw5TZWt76+lCnqpXsokOAQQBAkkAG7QgUtAEKIChLeSRd3k3fAYFg+/Q7A+vfnZHf4OXrs5qhB+ulPY0hSyBYg32jKtOC+SAoBLIiQAIAQLEmQOhGgKRDtyxKlzBqKOSk38zeqHixpddTARq84E5QEwmpHAtthi1jJ1LbbQAA) format('woff2');
+}
+section.gantt {
+  --label: 330px;   /* タスク名の列幅 */
+  --line: #CBD8DF;  /* 罫線の色 */
+  --months: 5;      /* 見出し行の列数から自動で決まる */
+  --c-plan:  var(--aoao-blue);
+  --c-exp:   var(--aoao-teal);
+  --c-write: #B8615A;
+  --c-other: #8AA0AD;
+}
+section.gantt:has(tr > th:nth-child(2):last-child) { --months: 1; }
+section.gantt:has(tr > th:nth-child(3):last-child) { --months: 2; }
+section.gantt:has(tr > th:nth-child(4):last-child) { --months: 3; }
+section.gantt:has(tr > th:nth-child(5):last-child) { --months: 4; }
+section.gantt:has(tr > th:nth-child(6):last-child) { --months: 5; }
+section.gantt:has(tr > th:nth-child(7):last-child) { --months: 6; }
+section.gantt:has(tr > th:nth-child(8):last-child) { --months: 7; }
+section.gantt:has(tr > th:nth-child(9):last-child) { --months: 8; }
+section.gantt:has(tr > th:nth-child(10):last-child) { --months: 9; }
+section.gantt:has(tr > th:nth-child(11):last-child) { --months: 10; }
+section.gantt:has(tr > th:nth-child(12):last-child) { --months: 11; }
+section.gantt:has(tr > th:nth-child(13):last-child) { --months: 12; }
+section.gantt table {
+  width: 100%;
+  table-layout: fixed;
+  font-size: 22px;
+  margin: 8px 0 0;
+}
+section.gantt th:first-child { width: var(--label); }
+section.gantt th { padding: 6px 10px; }
+section.gantt td {
+  height: 50px;
+  padding: 0;
+  border-bottom: 1px solid var(--line);   /* タスクの区切り */
+}
+section.gantt tr:nth-child(even) td { background-color: transparent; }
+/* 月の区切りと右端 */
+section.gantt :is(th, td):not(:first-child) { border-left: 1px solid var(--line); }
+section.gantt :is(th, td):last-child { border-right: 1px solid var(--line); }
+section.gantt th:not(:first-child) { border-left-color: rgba(255, 255, 255, 0.25); }
+
+/* タスク名 */
+section.gantt td:first-child {
+  padding: 0 12px 0 0;
+  color: var(--aoao-slate);
+  white-space: nowrap;
+  overflow: hidden;
+}
+section.gantt :is(td:first-child, table + p) > :is(em, strong, code) {
+  color: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  background: none;
+  padding: 0;
+}
+
+/* 週の帯 */
+section.gantt tr { --c: var(--c-plan); }
+section.gantt tr:has(> td:first-child > em)     { --c: var(--c-exp); }
+section.gantt tr:has(> td:first-child > strong) { --c: var(--c-write); }
+section.gantt tr:has(> td:first-child > code)   { --c: var(--c-other); }
+section.gantt td:not(:first-child) {
+  font-family: 'aoao-gantt';
+  /* 1em = 月の列幅 / 4（スライド幅 1280px − 左右余白 112px − タスク名の列） */
+  font-size: calc(((1168px - var(--label)) / var(--months) - 1px) / 4);
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: pre;
+  overflow: hidden;
+  color: var(--c);
+}
+
+/* 注記行（1列目が空）: 中身を小さな文字で表示 */
+section.gantt tr:has(> td:first-child:empty) td {
+  height: auto;
+  border: none;
+  padding-top: 6px;
+  font-family: var(--aoao-font);
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--aoao-slate);
+  white-space: nowrap;
+  overflow: visible;
+  vertical-align: top;
+}
+section.gantt tr:has(> td:first-child:empty) td > strong { color: var(--aoao-navy); }
+
+/* 凡例（表の直後の段落） */
+section.gantt table + p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 18px;
+  color: var(--aoao-slate);
+}
+section.gantt table + p::before,
+section.gantt table + p > :is(em, strong, code)::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 14px;
+  margin-right: 8px;
+  vertical-align: middle;
+  background: var(--c-plan);
+}
+section.gantt table + p::before { margin-right: 0; }
+section.gantt table + p > :is(em, strong, code) { margin-left: 20px; }
+section.gantt table + p > em::before     { background: var(--c-exp); }
+section.gantt table + p > strong::before { background: var(--c-write); }
+section.gantt table + p > code::before   { background: var(--c-other); }
